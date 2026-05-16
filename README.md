@@ -1,7 +1,5 @@
 # 🛡️ Bob-QA Gatekeeper: AI Governance & Compliance
 
-![Bob-QA Gatekeeper Hero](docs/images/hero.png)
-
 [![Developed by Joshua Jacome](https://img.shields.io/badge/Developed%20by-Joshua%20Jacome-blueviolet)](https://github.com/itraed)
 [![EU AI Act Compliant](https://img.shields.io/badge/EU%20AI%20Act-Compliant-success)](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai)
 [![IBM Bob Hackathon](https://img.shields.io/badge/IBM%20Bob-Hackathon%202026-blue)](https://www.ibm.com/)
