@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t.audit_history_title }} - {{ t.dashboard_title }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">
+            <i class="bi bi-clock-history"></i> {{ t.audit_history_title }}
+        </h1>
+        <p class="lead text-muted">{{ t.dashboard_subtitle }}</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-funnel"></i> {{ t.filter_by }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('main.audit_history') }}" class="row g-4">
+                    <div class="col-md-6">
+                        <label for="status" class="form-label text-muted small text-uppercase fw-bold">{{ t.filter_status }}</label>
+                        <select class="form-select" id="status" name="status" onchange="this.form.submit()">
+                            <option value="all" {% if status_filter == 'all' %}selected{% endif %}>{{ t.filter_all }}</option>
+                            <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>{{ t.filter_approved }}</option>
+                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>{{ t.filter_pending }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="risk" class="form-label text-muted small text-uppercase fw-bold">{{ t.filter_risk }}</label>
+                        <select class="form-select" id="risk" name="risk" onchange="this.form.submit()">
+                            <option value="all" {% if risk_filter == 'all' %}selected{% endif %}>{{ t.filter_all }}</option>
+                            <option value="high" {% if risk_filter == 'high' %}selected{% endif %}>{{ t.filter_high }}</option>
+                            <option value="medium" {% if risk_filter == 'medium' %}selected{% endif %}>{{ t.filter_medium }}</option>
+                            <option value="low" {% if risk_filter == 'low' %}selected{% endif %}>{{ t.filter_low }}</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Audit Table -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-table"></i> {{ t.audit_history_title }}</h5>
+            </div>
+            <div class="card-body">
+                {% if audits %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>{{ t.table_id }}</th>
+                                    <th>{{ t.table_project }}</th>
+                                    <th>{{ t.table_ai_model }}</th>
+                                    <th>{{ t.table_risk }}</th>
+                                    <th>{{ t.table_status }}</th>
+                                    <th>{{ t.table_reviewer }}</th>
+                                    <th>{{ t.table_timestamp }}</th>
+                                    <th>{{ t.table_actions }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for audit in audits %}
+                                <tr>
+                                    <td><strong>#{{ audit.id }}</strong></td>
+                                    <td>{{ audit.project_name or 'N/A' }}</td>
+                                    <td>{{ audit.ai_model_name or 'N/A' }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ audit.ai_risk_score | risk_badge }}">
+                                            {{ audit.ai_risk_score | risk_level }} ({{ "%.2f"|format(audit.ai_risk_score) }})
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ audit.human_approved | approval_badge }}">
+                                            <i class="bi bi-{% if audit.human_approved %}check-circle{% else %}clock{% endif %}"></i>
+                                            {{ audit.human_approved | approval_text }}
+                                        </span>
+                                    </td>
+                                    <td>{{ audit.reviewer_name }}</td>
+                                    <td>
+                                        <small>{{ audit.timestamp.strftime('%Y-%m-%d') }}</small><br>
+                                        <small class="text-muted">{{ audit.timestamp.strftime('%H:%M:%S') }}</small>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('main.audit_detail', audit_id=audit.id) }}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> {{ t.view }}
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Minimal Pagination -->
+                    {% if pagination.pages > 1 %}
+                    <div class="d-flex justify-content-center align-items-center gap-4 mt-4 mb-2">
+                        {% if pagination.has_prev %}
+                        <a href="{{ url_for('main.audit_history', page=pagination.prev_num, status=status_filter, risk=risk_filter) }}" class="text-decoration-none" style="color: var(--text-secondary); font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
+                            <i class="bi bi-arrow-left me-1"></i> {{ t.previous }}
+                        </a>
+                        {% else %}
+                        <span style="color: rgba(255,255,255,0.2);"><i class="bi bi-arrow-left me-1"></i> {{ t.previous }}</span>
+                        {% endif %}
+                        
+                        {% if pagination.has_next %}
+                        <a href="{{ url_for('main.audit_history', page=pagination.next_num, status=status_filter, risk=risk_filter) }}" class="text-decoration-none" style="color: var(--text-secondary); font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">
+                            {{ t.next }} <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                        {% else %}
+                        <span style="color: rgba(255,255,255,0.2);">{{ t.next }} <i class="bi bi-arrow-right ms-1"></i></span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5 empty-state">
+                        <i class="bi bi-search" style="font-size: 3rem; color: var(--text-muted); opacity: 0.5;"></i>
+                        <h5 class="mt-4" style="color: var(--text-primary);">{{ t.no_matching_filters }}</h5>
+                        <p class="text-muted mb-4">Intenta ajustar o eliminar los filtros actuales para ver más resultados.</p>
+                        {% if status_filter != 'all' or risk_filter != 'all' %}
+                            <a href="{{ url_for('main.audit_history') }}" class="btn btn-outline-primary rounded-pill px-4">
+                                <i class="bi bi-arrow-counterclockwise"></i> {{ t.clear_filters }}
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

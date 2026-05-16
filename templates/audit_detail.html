@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t.audit_title }} #{{ audit.id }} - {{ t.dashboard_title }}{% endblock %}
+
+{% block extra_head %}
+<script src="{{ url_for('static', filename='js/audit_solutions.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">
+            <i class="bi bi-file-earmark-code"></i> {{ t.audit_title }} #{{ audit.id }}
+        </h1>
+        <p class="lead text-muted">{{ t.detail_subtitle }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Code Snippet Card -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-code-square"></i> {{ t.audit_code_snippet }}</h5>
+                {% if audit.ai_risk_score >= 0.7 %}
+                <span class="badge bg-danger">{{ t.warning_high_risk }}</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <pre><code>{{ audit.code_snippet }}</code></pre>
+            </div>
+        </div>
+
+        <!-- AI Auto-Generated Solutions -->
+        {% if ai_solutions and ai_solutions.solutions %}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-robot"></i> {{ t.ai_solutions_title }}</h5>
+                <span class="badge bg-secondary">{{ ai_solutions.solutions|length }} {{ t.options }}</span>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-4" style="background: rgba(10, 132, 255, 0.1); border-color: rgba(10, 132, 255, 0.3);">
+                    <i class="bi bi-info-circle"></i> <strong>{{ t.ai_solutions_subtitle }}:</strong>
+                    {{ t.ai_solutions_detected }} {{ t.ai_solutions_code }} {{ ai_solutions.solutions|length }} {{ t.ai_solutions_alternatives }}.
+                    {{ t.ai_solutions_original_risk }}: <strong>{{ "%.2f"|format(ai_solutions.original_risk) }}</strong>
+                </div>
+
+                <!-- Solution Tabs -->
+                <ul class="nav nav-pills mb-3" id="solutionTabs" role="tablist">
+                    {% for solution in ai_solutions.solutions %}
+                    <li class="nav-item" role="presentation">
+                        <button class="btn btn-secondary {% if loop.first %}btn-primary{% endif %} me-2 mb-2" 
+                                id="solution{{ loop.index }}-tab" 
+                                data-bs-toggle="pill" 
+                                data-bs-target="#solution{{ loop.index }}" 
+                                type="button" 
+                                role="tab"
+                                onclick="document.querySelectorAll('#solutionTabs .btn').forEach(b => {b.classList.remove('btn-primary'); b.classList.add('btn-secondary');}); this.classList.remove('btn-secondary'); this.classList.add('btn-primary');">
+                            {{ t.ai_solutions_solution }} {{ loop.index }}
+                            <span class="badge {% if solution.new_risk < 0.4 %}bg-success{% elif solution.new_risk < 0.7 %}bg-warning text-dark{% else %}bg-danger{% endif %} ms-1">
+                                {{ "%.0f"|format(solution.improvement_percent) }}% ↑
+                            </span>
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <!-- Solution Content -->
+                <div class="tab-content" id="solutionTabContent">
+                    {% for solution in ai_solutions.solutions %}
+                    <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
+                         id="solution{{ loop.index }}" 
+                         role="tabpanel">
+                        
+                        <!-- Solution Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+                            <h5 class="mb-0">
+                                <i class="bi bi-lightbulb"></i> {{ solution.title }}
+                            </h5>
+                            <div>
+                                <span class="badge bg-secondary fs-6">
+                                    {{ t.risk_level }}: {{ "%.2f"|format(solution.new_risk) }}
+                                </span>
+                                <span class="badge bg-primary fs-6 ms-2">
+                                    {{ t.ai_solutions_improvement }}: {{ "%.0f"|format(solution.improvement_percent) }}%
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Risk Comparison -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="stat-card" style="border-color: rgba(255, 69, 58, 0.3);">
+                                    <small class="text-muted d-block">{{ t.ai_solutions_original }}</small>
+                                    <strong class="text-danger display-6">{{ "%.2f"|format(ai_solutions.original_risk) }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="stat-card" style="border-color: rgba(50, 215, 75, 0.3);">
+                                    <small class="text-muted d-block">{{ t.ai_solutions_new }}</small>
+                                    <strong class="text-success display-6">{{ "%.2f"|format(solution.new_risk) }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Solution Code -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-code-slash"></i> {{ t.ai_solutions_corrected_code }}: <small class="text-muted fw-normal ms-2">(Click the code to edit directly)</small></span>
+                                <button class="btn btn-sm btn-secondary" 
+                                        onclick="copySolutionCode({{ loop.index }}, document.getElementById('solution-code-{{ loop.index }}').textContent.trim())">
+                                    <i class="bi bi-clipboard"></i> {{ t.btn_copy_code }}
+                                </button>
+                            </label>
+                            <pre id="solution-code-{{ loop.index }}" contenteditable="true" style="outline: none; transition: border 0.3s;" onfocus="this.style.border='1px solid var(--accent-primary)'" onblur="this.style.border='1px solid var(--border-light)'"><code>{{ solution.code }}</code></pre>
+                        </div>
+
+                        <!-- Explanation -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-info-circle"></i> {{ t.ai_solutions_explanation }}:
+                            </label>
+                            <div class="alert alert-secondary" style="background: rgba(255,255,255,0.05); border: none;">
+                                <p class="mb-2"><strong>{{ t.ai_solutions_approach }}:</strong> {{ solution.approach }}</p>
+                                <p class="mb-0">{{ solution.explanation }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <button class="btn btn-success text-dark" 
+                                    onclick="applySolution({{ audit.id }}, {
+                                        code: document.getElementById('solution-code-{{ loop.index }}').textContent.trim(),
+                                        newRisk: {{ solution.new_risk }},
+                                        title: '{{ solution.title|replace("'", "\\'") }}',
+                                        improvement: {{ "%.0f"|format(solution.improvement_percent) }},
+                                        originalRisk: {{ "%.2f"|format(ai_solutions.original_risk) }},
+                                        approach: '{{ solution.approach|replace("'", "\\'") }}'
+                                    })">
+                                <i class="bi bi-check-circle"></i> {{ t.btn_apply }}
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Additional Info -->
+                <div class="alert alert-warning mt-4 mb-0" style="background: rgba(255, 214, 10, 0.1); border-color: rgba(255, 214, 10, 0.3);">
+                    <i class="bi bi-exclamation-triangle"></i> <strong>{{ t.warning_review_required }}:</strong>
+                    {{ t.warning_review_text }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Review Comments Card -->
+        {% if audit.comments %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-chat-left-text"></i> {{ t.audit_review_comments }}</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ audit.comments }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <!-- Status Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> {{ t.audit_status }}</h5>
+            </div>
+            <div class="card-body text-center">
+                <h3>
+                    <span class="badge bg-{{ audit.human_approved | approval_badge }} fs-4 {% if audit.human_approved %}text-dark{% endif %}">
+                        <i class="bi bi-{% if audit.human_approved %}check-circle{% else %}clock{% endif %}"></i>
+                        {{ audit.human_approved | approval_text }}
+                    </span>
+                </h3>
+            </div>
+        </div>
+
+        <!-- Risk Assessment Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-speedometer"></i> {{ t.audit_risk_assessment }}</h5>
+            </div>
+            <div class="card-body">
+                <h3 class="text-center mb-3">
+                    <span class="badge bg-{{ audit.ai_risk_score | risk_badge }} fs-4 {% if audit.ai_risk_score < 0.7 %}text-dark{% endif %}">
+                        {{ audit.ai_risk_score | risk_level }}
+                    </span>
+                </h3>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar bg-{{ audit.ai_risk_score | risk_badge }}" 
+                         role="progressbar" 
+                         style="width: {{ (audit.ai_risk_score * 100) | int }}%;">
+                        {{ "%.2f"|format(audit.ai_risk_score) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Details Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-list-ul"></i> {{ t.audit_details }}</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">{{ t.detail_reviewer }}:</dt>
+                    <dd class="col-sm-7">{{ audit.reviewer_name }}</dd>
+
+                    <dt class="col-sm-5">{{ t.detail_ai_model }}:</dt>
+                    <dd class="col-sm-7">{{ audit.ai_model_name or 'N/A' }}</dd>
+
+                    <dt class="col-sm-5">{{ t.detail_project }}:</dt>
+                    <dd class="col-sm-7">{{ audit.project_name or 'N/A' }}</dd>
+
+                    <dt class="col-sm-5">{{ t.detail_timestamp }}:</dt>
+                    <dd class="col-sm-7">{{ audit.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Actions Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> {{ t.audit_actions }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if not audit.human_approved %}
+                    <form method="POST" action="{{ url_for('main.approve_audit', audit_id=audit.id) }}">
+                        <button type="submit" class="btn btn-success text-dark w-100">
+                            <i class="bi bi-check-circle"></i> {{ t.btn_approve }}
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="{{ url_for('main.export_audit', audit_id=audit.id) }}" target="_blank" class="btn btn-outline-primary w-100 mb-2" style="border-radius: var(--radius-sm);">
+                        <i class="bi bi-file-earmark-pdf"></i> Export to PDF
+                    </a>
+                    <form method="POST" action="{{ url_for('main.reject_audit', audit_id=audit.id) }}">
+                        <button type="submit" class="btn btn-warning text-dark w-100">
+                            <i class="bi bi-x-circle"></i> {{ t.btn_revoke }}
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('main.audit_history') }}" 
+                       class="btn btn-primary mt-2">
+                        <i class="bi bi-arrow-left"></i> {{ t.btn_back }}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+{% endblock %}

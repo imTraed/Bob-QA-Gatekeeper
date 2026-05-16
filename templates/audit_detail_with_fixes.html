@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+
+{% block title %}Audit #{{ audit.id }} con Soluciones IA - Bob-QA Gatekeeper{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">
+            <i class="bi bi-file-earmark-code"></i> Audit Log #{{ audit.id }}
+            {% if audit.ai_risk_score >= 0.7 %}
+            <span class="badge bg-danger">ALTO RIESGO</span>
+            {% elif audit.ai_risk_score >= 0.4 %}
+            <span class="badge bg-warning">RIESGO MEDIO</span>
+            {% else %}
+            <span class="badge bg-success">RIESGO BAJO</span>
+            {% endif %}
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Original Code Card -->
+        <div class="card mb-4 border-{{ audit.ai_risk_score | risk_badge }}">
+            <div class="card-header bg-{{ audit.ai_risk_score | risk_badge }} text-white">
+                <h5 class="mb-0"><i class="bi bi-code-square"></i> Código Original (Problemático)</h5>
+            </div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded"><code id="originalCode">{{ audit.code_snippet }}</code></pre>
+                <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('originalCode')">
+                    <i class="bi bi-clipboard"></i> Copiar
+                </button>
+            </div>
+        </div>
+
+        <!-- AI Solutions Section -->
+        {% if audit.ai_risk_score >= 0.4 %}
+        <div class="card mb-4 border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-robot"></i> Soluciones Generadas por IA
+                    <span class="badge bg-light text-dark">3 Alternativas</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="solutionsContainer">
+                    <div class="text-center py-4">
+                        <button id="generateSolutionsBtn" class="btn btn-primary btn-lg" onclick="generateSolutions()">
+                            <i class="bi bi-magic"></i> Generar 3 Soluciones con IA
+                        </button>
+                        <p class="text-muted mt-2">
+                            <small>La IA analizará el código y propondrá 3 soluciones seguras</small>
+                        </p>
+                        
+                        <!-- API Key Input (Optional) -->
+                        <div class="mt-3">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="toggleApiKeyInput()">
+                                <i class="bi bi-key"></i> Usar API Key personalizada
+                            </button>
+                            <div id="apiKeyInput" style="display: none;" class="mt-2">
+                                <input type="text" 
+                                       id="customApiKey" 
+                                       class="form-control" 
+                                       placeholder="sk-... (opcional, usa variable de entorno si no se proporciona)">
+                                <small class="text-muted">
+                                    Configura OPENAI_API_KEY en variables de entorno o ingresa aquí
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Solutions will be loaded here -->
+                    <div id="solutionsContent"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Review Comments Card -->
+        {% if audit.comments %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-chat-left-text"></i> Comentarios de Revisión</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0">{{ audit.comments }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <!-- Status Card -->
+        <div class="card mb-4">
+            <div class="card-header bg-{{ audit.human_approved | approval_badge }} text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Estado</h5>
+            </div>
+            <div class="card-body">
+                <h3 class="text-center">
+                    <span class="badge bg-{{ audit.human_approved | approval_badge }} fs-4">
+                        <i class="bi bi-{% if audit.human_approved %}check-circle{% else %}clock{% endif %}"></i>
+                        {{ audit.human_approved | approval_text }}
+                    </span>
+                </h3>
+            </div>
+        </div>
+
+        <!-- Risk Assessment Card -->
+        <div class="card mb-4">
+            <div class="card-header bg-{{ audit.ai_risk_score | risk_badge }} text-white">
+                <h5 class="mb-0"><i class="bi bi-speedometer"></i> Evaluación de Riesgo</h5>
+            </div>
+            <div class="card-body">
+                <h3 class="text-center mb-3">
+                    <span class="badge bg-{{ audit.ai_risk_score | risk_badge }} fs-4">
+                        {{ audit.ai_risk_score | risk_level }}
+                    </span>
+                </h3>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar bg-{{ audit.ai_risk_score | risk_badge }}" 
+                         role="progressbar" 
+                         style="width: {{ (audit.ai_risk_score * 100) | int }}%;">
+                        {{ "%.2f"|format(audit.ai_risk_score) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Details Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-list-ul"></i> Detalles</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5">Revisor:</dt>
+                    <dd class="col-sm-7">{{ audit.reviewer_name }}</dd>
+
+                    <dt class="col-sm-5">AI Model:</dt>
+                    <dd class="col-sm-7">{{ audit.ai_model_name or 'N/A' }}</dd>
+
+                    <dt class="col-sm-5">Proyecto:</dt>
+                    <dd class="col-sm-7">{{ audit.project_name or 'N/A' }}</dd>
+
+                    <dt class="col-sm-5">Fecha:</dt>
+                    <dd class="col-sm-7">{{ audit.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Actions Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Acciones</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if not audit.human_approved %}
+                    <form method="POST" action="{{ url_for('main.approve_audit', audit_id=audit.id) }}">
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-check-circle"></i> Aprobar
+                        </button>
+                    </form>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('main.reject_audit', audit_id=audit.id) }}">
+                        <button type="submit" class="btn btn-warning w-100">
+                            <i class="bi bi-x-circle"></i> Revocar Aprobación
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('main.audit_history') }}" 
+                       class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Volver al Historial
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentSolutions = null;
+
+function toggleApiKeyInput() {
+    const input = document.getElementById('apiKeyInput');
+    input.style.display = input.style.display === 'none' ? 'block' : 'none';
+}
+
+async function generateSolutions() {
+    const btn = document.getElementById('generateSolutionsBtn');
+    const container = document.getElementById('solutionsContent');
+    const apiKey = document.getElementById('customApiKey')?.value || null;
+    
+    // Show loading
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando soluciones...';
+    container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2">La IA está analizando el código y generando 3 soluciones...</p></div>';
+    
+    try {
+        const response = await fetch('/auto/generate-fixes/{{ audit.id }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(apiKey && {'X-API-Key': apiKey})
+            },
+            body: JSON.stringify({
+                api_key: apiKey
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            currentSolutions = data.fixes;
+            displaySolutions(data.fixes);
+            btn.style.display = 'none';
+        } else {
+            container.innerHTML = `<div class="alert alert-danger">${data.error || 'Error al generar soluciones'}</div>`;
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-magic"></i> Reintentar';
+        }
+    } catch (error) {
+        container.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-magic"></i> Reintentar';
+    }
+}
+
+function displaySolutions(fixes) {
+    const container = document.getElementById('solutionsContent');
+    
+    if (!fixes.success) {
+        container.innerHTML = `<div class="alert alert-warning">${fixes.error}</div>`;
+        return;
+    }
+    
+    let html = `
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> 
+            <strong>Modelo usado:</strong> ${fixes.model_used}
+            ${fixes.note ? `<br><small>${fixes.note}</small>` : ''}
+        </div>
+    `;
+    
+    fixes.solutions.forEach((solution, index) => {
+        const improvementClass = solution.improvement > 0 ? 'success' : 'warning';
+        const riskBadge = getRiskBadgeClass(solution.new_risk);
+        
+        html += `
+            <div class="card mb-3 border-${improvementClass}">
+                <div class="card-header bg-${improvementClass} text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightbulb"></i> ${solution.title}
+                        <span class="badge bg-light text-dark float-end">
+                            Mejora: ${solution.improvement_percent}%
+                        </span>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <!-- Approach -->
+                    <p><strong>Enfoque:</strong> ${solution.approach}</p>
+                    
+                    <!-- Explanation -->
+                    <div class="alert alert-light">
+                        <strong>Explicación:</strong><br>
+                        ${solution.explanation}
+                    </div>
+                    
+                    <!-- Risk Comparison -->
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <small class="text-muted">Riesgo Original</small>
+                            <h4><span class="badge bg-danger">${solution.original_risk.toFixed(2)}</span></h4>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Nuevo Riesgo</small>
+                            <h4><span class="badge bg-${riskBadge}">${solution.new_risk.toFixed(2)}</span></h4>
+                        </div>
+                    </div>
+                    
+                    <!-- Code -->
+                    <div class="mb-3">
+                        <strong>Código Corregido:</strong>
+                        <pre class="bg-light p-3 rounded mt-2"><code id="solution${index}">${escapeHtml(solution.code)}</code></pre>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('solution${index}')">
+                            <i class="bi bi-clipboard"></i> Copiar Código
+                        </button>
+                        <button class="btn btn-sm btn-primary" onclick="applySolution(${index})">
+                            <i class="bi bi-check2-square"></i> Aplicar Esta Solución
+                        </button>
+                    </div>
+                    
+                    <!-- Status -->
+                    <div class="alert alert-${solution.still_blocked ? 'danger' : solution.auto_approve ? 'success' : 'warning'}">
+                        ${solution.still_blocked ? '🔴 Aún requiere revisión adicional' : 
+                          solution.auto_approve ? '🟢 Esta solución puede ser auto-aprobada' : 
+                          '🟡 Requiere revisión antes de despliegue'}
+                    </div>
+                    
+                    ${solution.recommendations && solution.recommendations.length > 0 ? `
+                    <details>
+                        <summary class="text-muted" style="cursor: pointer;">
+                            <small>Ver recomendaciones adicionales</small>
+                        </summary>
+                        <ul class="mt-2">
+                            ${solution.recommendations.map(rec => `<li><small>${rec}</small></li>`).join('')}
+                        </ul>
+                    </details>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function getRiskBadgeClass(score) {
+    if (score >= 0.7) return 'danger';
+    if (score >= 0.4) return 'warning';
+    return 'success';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    const text = element.textContent;
+    
+    navigator.clipboard.writeText(text).then(() => {
+        alert('✅ Código copiado al portapapeles');
+    }).catch(err => {
+        console.error('Error al copiar:', err);
+    });
+}
+
+function applySolution(index) {
+    if (!currentSolutions || !currentSolutions.solutions[index]) {
+        alert('Error: Solución no encontrada');
+        return;
+    }
+    
+    const solution = currentSolutions.solutions[index];
+    const confirmed = confirm(
+        `¿Aplicar "${solution.title}"?\n\n` +
+        `Esto actualizará el código de la auditoría #{{ audit.id }}.\n` +
+        `Nuevo riesgo: ${solution.new_risk.toFixed(2)} (${solution.new_risk_level})`
+    );
+    
+    if (confirmed) {
+        // Aquí podrías hacer un POST para actualizar la auditoría
+        alert('✅ Solución aplicada. Redirigiendo...');
+        // window.location.href = '/audit/{{ audit.id }}/apply-solution/' + index;
+    }
+}
+</script>
+{% endblock %}

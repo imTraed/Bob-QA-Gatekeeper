@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}Auto-Review Dashboard - Bob-QA Gatekeeper{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-4">
+            <i class="bi bi-robot"></i> Auto-Review Dashboard
+        </h1>
+        <p class="lead text-muted">Sistema de Análisis Automático de Código</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-robot"></i> Total Auto-Revisiones
+                </h5>
+                <p class="card-text display-4">{{ total_auto }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-check-circle"></i> Auto-Aprobadas
+                </h5>
+                <p class="card-text display-4">{{ auto_approved }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-shield-x"></i> Bloqueadas
+                </h5>
+                <p class="card-text display-4">{{ auto_blocked }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Test Section -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Prueba Rápida de Código</h5>
+            </div>
+            <div class="card-body">
+                <form id="quickTestForm">
+                    <div class="mb-3">
+                        <label for="testCode" class="form-label">Pega tu código aquí para análisis instantáneo:</label>
+                        <textarea class="form-control font-monospace" id="testCode" rows="10" placeholder="// Pega tu código aquí..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-search"></i> Analizar Código
+                    </button>
+                </form>
+                
+                <!-- Results -->
+                <div id="analysisResults" class="mt-4" style="display: none;">
+                    <hr>
+                    <h5>Resultados del Análisis:</h5>
+                    <div id="resultContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Risk Level Guide -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> Guía de Niveles de Riesgo</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card border-success mb-3">
+                            <div class="card-header bg-success text-white">
+                                <h6 class="mb-0">🟢 RIESGO BAJO (0.0 - 0.3)</h6>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Acción:</strong> Aprobación automática</p>
+                                <p><strong>Permite:</strong></p>
+                                <ul>
+                                    <li>✅ Desarrollo local</li>
+                                    <li>✅ Push a repositorio</li>
+                                    <li>✅ Despliegue automático</li>
+                                </ul>
+                                <p class="text-muted"><small>Ejemplos: Cambiar colores, añadir comentarios, formateo</small></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-warning mb-3">
+                            <div class="card-header bg-warning text-dark">
+                                <h6 class="mb-0">🟡 RIESGO MEDIO (0.4 - 0.6)</h6>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Acción:</strong> Revisión requerida</p>
+                                <p><strong>Permite:</strong></p>
+                                <ul>
+                                    <li>✅ Desarrollo local</li>
+                                    <li>⏸️ Push bloqueado</li>
+                                    <li>❌ No despliegue</li>
+                                </ul>
+                                <p class="text-muted"><small>Ejemplos: Consultas DB, APIs, lógica de negocio</small></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-danger mb-3">
+                            <div class="card-header bg-danger text-white">
+                                <h6 class="mb-0">🔴 RIESGO ALTO (0.7 - 1.0)</h6>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Acción:</strong> Bloqueado completamente</p>
+                                <p><strong>Permite:</strong></p>
+                                <ul>
+                                    <li>⏸️ Desarrollo pausado</li>
+                                    <li>❌ Push bloqueado</li>
+                                    <li>❌ No despliegue</li>
+                                </ul>
+                                <p class="text-muted"><small>Ejemplos: Seguridad, pagos, autenticación, SQL directo</small></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Auto-Reviews -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Revisiones Automáticas Recientes</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_auto %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Proyecto</th>
+                                    <th>Riesgo</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for audit in recent_auto %}
+                                <tr>
+                                    <td><strong>#{{ audit.id }}</strong></td>
+                                    <td>{{ audit.project_name }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ audit.ai_risk_score | risk_badge }}">
+                                            {{ audit.ai_risk_score | risk_level }} ({{ "%.2f"|format(audit.ai_risk_score) }})
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ audit.human_approved | approval_badge }}">
+                                            {{ audit.human_approved | approval_text }}
+                                        </span>
+                                    </td>
+                                    <td>{{ audit.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('main.audit_detail', audit_id=audit.id) }}" 
+                                           class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> No hay revisiones automáticas aún.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('quickTestForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const code = document.getElementById('testCode').value;
+    const resultsDiv = document.getElementById('analysisResults');
+    const contentDiv = document.getElementById('resultContent');
+    
+    if (!code.trim()) {
+        alert('Por favor ingresa código para analizar');
+        return;
+    }
+    
+    // Show loading
+    contentDiv.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div><p>Analizando código...</p></div>';
+    resultsDiv.style.display = 'block';
+    
+    try {
+        const response = await fetch('/auto/quick-check', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ code: code })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayResults(data.analysis, data.action);
+        } else {
+            contentDiv.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+        }
+    } catch (error) {
+        contentDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+    }
+});
+
+function displayResults(analysis, action) {
+    const contentDiv = document.getElementById('resultContent');
+    
+    let html = `
+        <div class="card border-${getRiskColor(analysis.risk_score)}">
+            <div class="card-header bg-${getRiskColor(analysis.risk_score)} text-white">
+                <h5 class="mb-0">${action.icon} ${action.status}</h5>
+            </div>
+            <div class="card-body">
+                <h6>Puntuación de Riesgo: ${analysis.risk_score} (${analysis.risk_level})</h6>
+                <p class="lead">${analysis.summary}</p>
+                
+                <hr>
+                
+                <h6>Decisión Automática:</h6>
+                <div class="alert alert-${getRiskColor(analysis.risk_score)}">
+                    ${action.message}
+                </div>
+                
+                <h6>Permisos:</h6>
+                <ul>
+                    <li>${action.can_develop ? '✅' : '❌'} Desarrollo local</li>
+                    <li>${action.can_proceed ? '✅' : '❌'} Push a repositorio</li>
+                    <li>${action.can_proceed ? '✅' : '❌'} Despliegue</li>
+                </ul>
+    `;
+    
+    if (analysis.risk_factors && analysis.risk_factors.length > 0) {
+        html += `
+                <hr>
+                <h6>Factores de Riesgo Detectados (${analysis.risk_factors.length}):</h6>
+                <ul class="list-group mb-3">
+        `;
+        
+        analysis.risk_factors.forEach(factor => {
+            html += `
+                <li class="list-group-item">
+                    <span class="badge bg-${getLevelColor(factor.level)}">${factor.level}</span>
+                    ${factor.description}
+                    ${factor.matches ? `<small class="text-muted">(${factor.matches} ocurrencias)</small>` : ''}
+                </li>
+            `;
+        });
+        
+        html += `</ul>`;
+    }
+    
+    if (analysis.recommendations && analysis.recommendations.length > 0) {
+        html += `
+                <hr>
+                <h6>Recomendaciones:</h6>
+                <ul>
+        `;
+        
+        analysis.recommendations.forEach(rec => {
+            html += `<li>${rec}</li>`;
+        });
+        
+        html += `</ul>`;
+    }
+    
+    html += `
+            </div>
+        </div>
+    `;
+    
+    contentDiv.innerHTML = html;
+}
+
+function getRiskColor(score) {
+    if (score >= 0.7) return 'danger';
+    if (score >= 0.4) return 'warning';
+    return 'success';
+}
+
+function getLevelColor(level) {
+    if (level === 'CRITICAL' || level === 'HIGH') return 'danger';
+    if (level === 'MEDIUM') return 'warning';
+    return 'info';
+}
+</script>
+{% endblock %}

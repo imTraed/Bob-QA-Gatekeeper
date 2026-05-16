@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t.about_title }} - {{ t.dashboard_title }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-4">
+            <i class="bi bi-info-circle"></i> {{ t.about_title }}
+        </h1>
+        <p class="lead text-muted">{{ t.about_subtitle }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Overview -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-book"></i> {{ t.overview }}</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ t.overview_text }}</p>
+                <p>{{ t.compliance_intro }}</p>
+            </div>
+        </div>
+
+        <!-- EU AI Act Compliance -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-shield-check"></i> {{ t.compliance_features }}</h5>
+            </div>
+            <div class="card-body">
+                <h6>{{ t.key_compliance_features }}</h6>
+                <ul>
+                    <li><strong>{{ t.transparency }}:</strong> {{ t.transparency_desc }}</li>
+                    <li><strong>{{ t.human_oversight }}:</strong> {{ t.human_oversight_desc }}</li>
+                    <li><strong>{{ t.risk_assessment }}:</strong> {{ t.risk_assessment_desc }}</li>
+                    <li><strong>{{ t.audit_trail }}:</strong> {{ t.audit_trail_desc }}</li>
+                    <li><strong>{{ t.documentation }}:</strong> {{ t.documentation_desc }}</li>
+                    <li><strong>{{ t.accountability }}:</strong> {{ t.accountability_desc }}</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Risk Classification -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-speedometer"></i> {{ t.risk_classification }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card border-success">
+                            <div class="card-body text-center">
+                                <span class="badge bg-success fs-5">{{ t.risk_low }}</span>
+                                <p class="mt-2 mb-0"><strong>0.0 - 0.39</strong></p>
+                                <small class="text-muted">{{ t.risk_low_desc }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <span class="badge bg-warning fs-5">{{ t.risk_medium }}</span>
+                                <p class="mt-2 mb-0"><strong>0.4 - 0.69</strong></p>
+                                <small class="text-muted">{{ t.risk_medium_desc }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-danger">
+                            <div class="card-body text-center">
+                                <span class="badge bg-danger fs-5">{{ t.risk_high }}</span>
+                                <p class="mt-2 mb-0"><strong>0.7 - 1.0</strong></p>
+                                <small class="text-muted">{{ t.risk_high_desc }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-star"></i> {{ t.key_features }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-speedometer2"></i> {{ t.dashboard_feature }}</h6>
+                        <p>{{ t.dashboard_feature_desc }}</p>
+                        
+                        <h6><i class="bi bi-plus-circle"></i> {{ t.audit_submission_feature }}</h6>
+                        <p>{{ t.audit_submission_feature_desc }}</p>
+                        
+                        <h6><i class="bi bi-clock-history"></i> {{ t.audit_history_feature }}</h6>
+                        <p>{{ t.audit_history_feature_desc }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-code-slash"></i> {{ t.restful_api_feature }}</h6>
+                        <p>{{ t.restful_api_feature_desc }}</p>
+                        
+                        <h6><i class="bi bi-graph-up"></i> {{ t.analytics_feature }}</h6>
+                        <p>{{ t.analytics_feature_desc }}</p>
+                        
+                        <h6><i class="bi bi-file-earmark-text"></i> {{ t.export_feature }}</h6>
+                        <p>{{ t.export_feature_desc }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Quick Stats -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-square"></i> {{ t.system_info }}</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-6">{{ t.version }}:</dt>
+                    <dd class="col-sm-6">1.0.0</dd>
+
+                    <dt class="col-sm-6">{{ t.framework }}:</dt>
+                    <dd class="col-sm-6">Flask 3.0</dd>
+
+                    <dt class="col-sm-6">{{ t.database }}:</dt>
+                    <dd class="col-sm-6">SQLite</dd>
+
+                    <dt class="col-sm-6">{{ t.license }}:</dt>
+                    <dd class="col-sm-6">MIT</dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- API Documentation -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-code-square"></i> {{ t.api_endpoints }}</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>{{ t.base_url }}:</strong> <code>/api</code></p>
+                <ul class="list-unstyled">
+                    <li><code>GET /audits</code></li>
+                    <li><code>POST /audits</code></li>
+                    <li><code>GET /audits/<id></code></li>
+                    <li><code>PUT /audits/<id></code></li>
+                    <li><code>POST /audits/<id>/approve</code></li>
+                    <li><code>POST /audits/<id>/reject</code></li>
+                    <li><code>GET /statistics</code></li>
+                    <li><code>GET /health</code></li>
+                </ul>
+                <a href="/api/health" target="_blank" class="btn btn-sm btn-primary">
+                    <i class="bi bi-heart-pulse"></i> {{ t.check_api_health }}
+                </a>
+            </div>
+        </div>
+
+        <!-- Resources -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-link-45deg"></i> {{ t.resources }}</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li>
+                        <a href="https://artificialintelligenceact.eu/" target="_blank">
+                            <i class="bi bi-box-arrow-up-right"></i> {{ t.eu_ai_act_site }}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://flask.palletsprojects.com/" target="_blank">
+                            <i class="bi bi-box-arrow-up-right"></i> {{ t.flask_docs }}
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://github.com" target="_blank">
+                            <i class="bi bi-box-arrow-up-right"></i> {{ t.github_repo }}
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- IBM Hackathon Badge -->
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="bi bi-trophy text-warning" style="font-size: 3rem;"></i>
+                <h6 class="mt-2 mb-0">{{ t.ibm_hackathon }}</h6>
+                <small class="text-muted">{{ t.built_for }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

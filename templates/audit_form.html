@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}{% if edit_mode %}{{ t.edit }}{% else %}{{ t.nav_new_audit }}{% endif %} - {{ t.dashboard_title }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="display-5">
+            <i class="bi bi-{% if edit_mode %}pencil{% else %}plus-circle{% endif %}"></i> 
+            {% if edit_mode %}{{ t.edit }} {{ t.audit_title }} #{{ audit.id }}{% else %}{{ t.new_audit_title }}{% endif %}
+        </h1>
+        <p class="lead text-muted">{{ t.dashboard_subtitle }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-10 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{{ t.audit_information }}</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{% if edit_mode %}{{ url_for('main.edit_audit', audit_id=audit.id) }}{% else %}{{ url_for('main.new_audit') }}{% endif %}">
+                    
+                    <!-- Code Snippet -->
+                    <div class="mb-3">
+                        <label for="code_snippet" class="form-label">
+                            <i class="bi bi-code-square"></i> {{ t.code_snippet }} <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control font-monospace" 
+                                  id="code_snippet" 
+                                  name="code_snippet" 
+                                  rows="10" 
+                                  required>{% if edit_mode %}{{ audit.code_snippet }}{% endif %}</textarea>
+                        <div class="form-text">{{ t.paste_code }}</div>
+                    </div>
+
+                    <!-- AI Risk Score -->
+                    <div class="mb-3">
+                        <label for="ai_risk_score" class="form-label">
+                            <i class="bi bi-speedometer"></i> {{ t.ai_risk_score }} <span class="text-danger">*</span>
+                        </label>
+                        <input type="range" 
+                               class="form-range" 
+                               id="ai_risk_score" 
+                               name="ai_risk_score" 
+                               min="0" 
+                               max="1" 
+                               step="0.01" 
+                               value="{% if edit_mode %}{{ audit.ai_risk_score }}{% else %}0.5{% endif %}"
+                               oninput="updateRiskDisplay(this.value)">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-success">{{ t.low_risk }} (0.0)</small>
+                            <small><strong>{{ t.current }}: <span id="risk_display">{% if edit_mode %}{{ "%.2f"|format(audit.ai_risk_score) }}{% else %}0.50{% endif %}</span></strong></small>
+                            <small class="text-danger">{{ t.high_risk }} (1.0)</small>
+                        </div>
+                        <div class="form-text">
+                            {{ t.risk_classification_help }}
+                            <span class="badge bg-success">{{ t.risk_low }} (0.0-0.39)</span>
+                            <span class="badge bg-warning">{{ t.risk_medium }} (0.4-0.69)</span>
+                            <span class="badge bg-danger">{{ t.risk_high }} (0.7-1.0)</span>
+                        </div>
+                    </div>
+
+                    <!-- Reviewer Name -->
+                    <div class="mb-3">
+                        <label for="reviewer_name" class="form-label">
+                            <i class="bi bi-person"></i> {{ t.reviewer }} <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="reviewer_name" 
+                               name="reviewer_name" 
+                               value="{% if edit_mode %}{{ audit.reviewer_name }}{% endif %}"
+                               required>
+                        <div class="form-text">{{ t.reviewer_help }}</div>
+                    </div>
+
+                    <!-- Removed optional fields to simplify -->
+
+                    <!-- Comments -->
+                    <div class="mb-3">
+                        <label for="comments" class="form-label">
+                            <i class="bi bi-chat-left-text"></i> {{ t.comments_label }}
+                        </label>
+                        <textarea class="form-control" 
+                                  id="comments" 
+                                  name="comments" 
+                                  rows="4">{% if edit_mode %}{{ audit.comments }}{% endif %}</textarea>
+                        <div class="form-text">{{ t.comments_help }}</div>
+                    </div>
+
+                    <!-- Human Approved -->
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="human_approved" 
+                                   name="human_approved"
+                                   {% if edit_mode and audit.human_approved %}checked{% endif %}>
+                            <label class="form-check-label" for="human_approved">
+                                <i class="bi bi-check-circle"></i> <strong>{{ t.approve_deployment }}</strong>
+                            </label>
+                        </div>
+                        <div class="form-text text-warning">
+                            <i class="bi bi-exclamation-triangle"></i> 
+                            {{ t.approval_warning }}
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> {{ t.cancel }}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> {% if edit_mode %}{{ t.update }}{% else %}{{ t.submit_audit }}{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateRiskDisplay(value) {
+    document.getElementById('risk_display').textContent = parseFloat(value).toFixed(2);
+}
+</script>
+{% endblock %}

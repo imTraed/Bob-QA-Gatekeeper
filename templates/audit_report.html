@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gatekeeper Audit Report #{{ audit.id }}</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #000;
+            margin: 0;
+            padding: 20px;
+            background: #fff;
+            font-size: 11pt;
+            line-height: 1.5;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+        }
+        .logo {
+            font-size: 24pt;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 14pt;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            width: 25%;
+        }
+        .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border: 1px solid #000;
+        }
+        .code-block {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 9pt;
+            background: #f9f9f9;
+            border: 1px solid #ccc;
+            padding: 15px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .signatures {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            width: 40%;
+            text-align: center;
+        }
+        .signature-line {
+            border-bottom: 1px solid #000;
+            margin-bottom: 5px;
+            height: 60px;
+        }
+        .status-badge {
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .approved { color: #198754; }
+        .rejected { color: #dc3545; }
+        .high-risk { color: #dc3545; }
+        .medium-risk { color: #d39e00; }
+        .low-risk { color: #198754; }
+        
+        @media print {
+            body { padding: 0; }
+            .no-print { display: none !important; }
+            @page { margin: 2cm; }
+        }
+        
+        .no-print {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+        }
+        .print-btn {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .print-btn:hover { background: #0b5ed7; }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <h3>📄 Formal PDF Export View</h3>
+        <p>This document is formatted for formal printing and PDF generation.</p>
+        <button class="print-btn" onclick="window.print()">Download as PDF</button>
+    </div>
+
+    <div class="header">
+        <div class="logo">GATEKEEPER SECURITY</div>
+        <div class="subtitle">EU AI ACT COMPLIANCE - FORMAL AUDIT REPORT</div>
+    </div>
+
+    <table>
+        <tr>
+            <th>Audit ID</th>
+            <td>#{{ audit.id }}</td>
+            <th>Date & Time</th>
+            <td>{{ audit.timestamp.strftime('%Y-%m-%d %H:%M:%S') }} UTC</td>
+        </tr>
+        <tr>
+            <th>Project / Service</th>
+            <td>{{ audit.project_name or 'N/A' }}</td>
+            <th>AI Model Used</th>
+            <td>{{ audit.ai_model_name or 'N/A' }}</td>
+        </tr>
+        <tr>
+            <th>Assigned Auditor</th>
+            <td>{{ audit.reviewer_name }}</td>
+            <th>Final Status</th>
+            <td class="status-badge {% if audit.human_approved %}approved{% else %}rejected{% endif %}">
+                {% if audit.human_approved %}APPROVED FOR DEPLOYMENT{% else %}REJECTED{% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">1. RISK ASSESSMENT SUMMARY</div>
+    <table>
+        <tr>
+            <th>AI Risk Score</th>
+            <td>
+                <strong>{{ "%.2f"|format(audit.ai_risk_score) }} / 1.00</strong>
+                <br>
+                <span class="status-badge {% if audit.ai_risk_score >= 0.7 %}high-risk{% elif audit.ai_risk_score >= 0.4 %}medium-risk{% else %}low-risk{% endif %}">
+                    {% if audit.ai_risk_score >= 0.7 %}CRITICAL / HIGH RISK{% elif audit.ai_risk_score >= 0.4 %}MEDIUM RISK{% else %}LOW RISK{% endif %}
+                </span>
+            </td>
+        </tr>
+        <tr>
+            <th>Compliance Notice</th>
+            <td>
+                This software artifact has been verified under the guidelines of the European Union AI Act. 
+                Mandatory human oversight has been applied and the system is officially cleared for deployment into the enterprise environment.
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">2. AUDITED CODE ARTIFACT</div>
+    <div class="code-block">{{ audit.code_snippet }}</div>
+
+    <div class="section-title">3. AUDITOR COMMENTS & RESOLUTION</div>
+    <table style="margin-bottom: 10px;">
+        <tr>
+            <td style="padding: 20px;">
+                {% if audit.comments %}
+                    {{ audit.comments | replace('\n', '<br>') | safe }}
+                {% else %}
+                    <em>No additional comments provided by the auditor.</em>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <div class="signatures">
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <strong>{{ audit.reviewer_name }}</strong><br>
+            Lead QA Auditor / Human Overseer
+        </div>
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <strong>System Authorization</strong><br>
+            Gatekeeper Automated Compliance Engine
+        </div>
+    </div>
+    
+    <script>
+        // Auto-open print dialog when page loads to save as PDF
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 800);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="{{ current_lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ t.dashboard_title }}{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <!-- Cyberpunk Theme CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cyberpunk.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                <i class="bi bi-shield-check"></i> {{ t.dashboard_title }}
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: var(--accent-yellow);">
+                <span class="navbar-toggler-icon" style="filter: invert(1) sepia(1) saturate(5) hue-rotate(30deg);"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}">
+                            <i class="bi bi-house"></i> {{ t.nav_dashboard }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.new_audit') }}">
+                            <i class="bi bi-plus-circle"></i> {{ t.nav_new_audit }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.audit_history') }}">
+                            <i class="bi bi-clock-history"></i> {{ t.nav_history }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auto_review.auto_dashboard') }}">
+                            <i class="bi bi-robot"></i> {{ t.nav_auto_review }}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.about') }}">
+                            <i class="bi bi-info-circle"></i> {{ t.nav_about }}
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Language Selector -->
+                <div class="language-selector me-3">
+                    <button class="language-btn" id="languageBtn" onclick="toggleLanguageDropdown()">
+                        <i class="bi bi-translate"></i> 
+                        {% if current_lang == 'en' %}EN{% else %}ES{% endif %}
+                        <i class="bi bi-chevron-down ms-1"></i>
+                    </button>
+                    <div class="language-dropdown" id="languageDropdown" style="display: none;">
+                        <div class="language-option {% if current_lang == 'en' %}active{% endif %}" 
+                             onclick="changeLanguage('en')">
+                            <i class="bi bi-flag-usa"></i> English
+                        </div>
+                        <div class="language-option {% if current_lang == 'es' %}active{% endif %}" 
+                             onclick="changeLanguage('es')">
+                            <i class="bi bi-flag-mx"></i> Español
+                        </div>
+                    </div>
+                </div>
+                
+                <span class="navbar-text">
+                    <i class="bi bi-shield-fill-check"></i> {{ t.nav_compliance }}
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="container my-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <h3 class="footer-title">/ {{ t.footer_mission }}</h3>
+                    <p class="footer-text">{{ t.footer_mission_text }}</p>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <h3 class="footer-title">/ {{ t.footer_vision }}</h3>
+                    <p class="footer-text">{{ t.footer_vision_text }}</p>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col text-center">
+                    <p class="footer-text mb-0">
+                        <i class="bi bi-shield-fill-check text-yellow"></i> 
+                        {{ t.dashboard_title }} - {{ t.nav_compliance }}
+                    </p>
+                    <p class="footer-text mt-2" style="font-size: 0.8rem;">
+                        Made with <span class="text-yellow">Bob</span> - Production Ready
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Language Selector Script -->
+    <script>
+        function toggleLanguageDropdown() {
+            const dropdown = document.getElementById('languageDropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function changeLanguage(lang) {
+            window.location.href = '/set-language/' + lang;
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('languageDropdown');
+            const btn = document.getElementById('languageBtn');
+            
+            if (!btn.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    </script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
