@@ -1,92 +1,163 @@
-# Bob-QA Gatekeeper
+# 🛡️ Bob-QA Gatekeeper: AI Governance & Compliance
 
-![EU AI Act Compliant](https://img.shields.io/badge/EU%20AI%20Act-Compliant-success)
-![Python](https://img.shields.io/badge/Python-3.8+-blue)
-![Flask](https://img.shields.io/badge/Flask-3.0-green)
-![IBM Hackathon](https://img.shields.io/badge/Built%20for-IBM%20Hackathon-purple)
+![Bob-QA Gatekeeper Hero](docs/images/hero.png)
 
----
+[![Developed by Joshua Jacome](https://img.shields.io/badge/Developed%20by-Joshua%20Jacome-blueviolet)](https://github.com/itraed)
+[![EU AI Act Compliant](https://img.shields.io/badge/EU%20AI%20Act-Compliant-success)](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai)
+[![IBM Bob Hackathon](https://img.shields.io/badge/IBM%20Bob-Hackathon%202026-blue)](https://www.ibm.com/)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.0-green.svg)](https://flask.palletsprojects.com/)
 
-## 1. The Corporate Problem Statement
-
-In 2026, enterprises are facing an unprecedented challenge due to the hyper-generation of AI-assisted software. Tools like IBM Bob exponentially accelerate code writing, but this massive volume has overwhelmed the cognitive capabilities of Quality Assurance (QA) teams. Senior engineers are bombarded with up to 100,000 lines of synthetic code per hour, trapped in alert fatigue due to thousands of security false positives.
-
-This operational chaos coincides with the enforcement of the **European Union Artificial Intelligence Act (EU AI Act)**, which mandatorily and strictly requires that any algorithmic or AI-generated software classified as "high risk" must have **demonstrable and qualified human oversight** before deployment. Failure to comply with this requirement exposes corporations to fines of up to 35 million euros or 7% of their global annual turnover.
-
-## 2. The Solution: Bob-QA Gatekeeper
-
-**Bob-QA Gatekeeper** is an audit, governance, and regulatory compliance panel developed in Flask and SQLite. It acts as an isolation middleware or "smart tollgate" between the AI-assisted development environment (IBM Bob IDE) and the final deployment pipeline (Production/CI-CD).
-
-The program intercepts machine-generated code **asynchronously**, classifies it based on its regulatory risk level, and freezes its execution. The tool provides a clean interface for a human reviewer to analyze, comment, and sign off on sensitive code blocks, automatically generating an **immutable audit trail** ready for legal inspections.
+> **The Enterprise "Smart Tollgate" for AI-Generated Code.** Turning the AI code generation crisis into a secure, compliant, and accelerated development lifecycle.
 
 ---
 
-## 3. Architecture and Core Features
-
-The system is structured under a clean, modular pattern that separates data logic, server processing, and the auditor interface, highlighting three main features that make it an *Enterprise-grade* product:
-
-### A. Data Layer and Immutability (`setup_db.py` / `models/`)
-Uses a forensic audit-oriented relational database. Every time an AI generates code, the table stores:
-* `code_snippet`: The exact code block under suspicion.
-* `ai_risk_score`: A mathematical index (0.0 to 1.0) that measures the code's sensitivity.
-* Legal accountability fields (`human_approved`, `reviewer_name`, `timestamp`).
-
-### B. Server Engine and Proactive Auto-Solutions (`app.py` / `routes/`)
-The backend provides an asynchronous pipeline that prevents slowing down the programmer's pace:
-* **Capture and Governance Endpoint:** Receives code functions in the background. The developer's workflow is not interrupted.
-* **AI-Driven Resolutive Auto-Corrector:** Unlike a passive blocker, when the system detects high-risk code, the internal AI **automatically generates multiple options of safe, corrected code**. It displays the exact percentage of risk improvement, allowing the auditor to apply the solution directly with a single click. *Gatekeeper doesn't slow down development; it accelerates it securely.*
-
-### C. Ergonomic and Global Dashboard (`templates/` / `static/`)
-A web interface optimized for rapid global decision-making:
-* **Visual Fatigue Reduction (Apple-Inspired Minimalist Dark Theme):** The interface uses a dark mode design with *glassmorphism* that isn't just aesthetic. It is ergonomically and psychologically designed to mitigate visual fatigue for auditors reading code 8 hours a day, improving their focus and dramatically reducing human error.
-* **Corporate Internationalization (i18n):** The system features instant, reactive translation (English/Spanish). It is ready to be deployed immediately in multinational corporations with globally distributed teams.
-* **Evidence Export Module:** Instantly generates a downloadable report that constitutes an immutable legal shield against EU regulators.
+## 📖 Table of Contents
+- [1. Executive Summary](#-1-executive-summary)
+- [2. The EU AI Act Challenge](#-2-the-eu-ai-act-challenge)
+- [📸 Platform Gallery](#-platform-gallery)
+- [3. Key Features](#-3-key-features)
+- [4. Technical Architecture](#-4-technical-architecture)
+- [5. Getting Started](#-5-getting-started)
+- [6. Why Bob-QA Gatekeeper?](#-6-why-bob-qa-gatekeeper)
 
 ---
 
-## 4. Real-Time Operational Flow
+## 🚀 1. Executive Summary
 
-1. **Generation:** A developer uses IBM Bob IDE to write a critical module.
-2. **Submission and Isolation:** Upon saving, the integration module automatically sends the code to the *Bob-QA Gatekeeper* API. It is marked as `Pending`.
-3. **Continuity:** The developer continues coding in their IDE; there are no bottlenecks or blocks in their productivity.
-4. **Resolutive Auditing:** The QA engineer opens the Dashboard. If it's a high-risk alert, **Gatekeeper offers them already-corrected code options**. The human reviews, accepts the AI's suggestion, adds technical comments, and clicks **"Approve"**.
-5. **Deployment and Logging:** The state changes to `Approved`, the code is released to the CI/CD branch, and the audit log is permanently sealed with the reviewer's name.
+In 2026, **IBM Bob** and other AI agents have exponentially increased code production. While productivity is at an all-time high, the volume of synthetic code has surpassed the human capacity for manual review, creating a "Compliance Gap."
+
+**Bob-QA Gatekeeper** is a specialized audit and governance platform that sits between AI-assisted IDEs and your production pipeline. It doesn't just block risky code; it **resolves** it using AI-driven auto-correction while ensuring a mandatory human-in-the-loop audit trail.
+
+## ⚖️ 2. The EU AI Act Challenge
+
+The **European Union Artificial Intelligence Act** classifies certain AI-generated software as "high risk," requiring:
+1. **Human Oversight:** Demonstrable review by qualified personnel.
+2. **Transparency:** Traceability of how code was generated and approved.
+3. **Accountability:** Immutable logs of the review process.
+
+**Failure to comply** can lead to fines up to **€35M or 7% of global turnover**. Bob-QA Gatekeeper provides the legal shield corporations need to stay compliant.
 
 ---
 
-## 5. Why this is a winning solution for the IBM Hackathon
+## 📸 Platform Gallery
 
-* **Strategic Alignment:** Resolves the biggest current fear of any global IBM client's board of directors: cybersecurity holes injected by synthetic code and severe EU AI Act penalties.
-* **Optimal Use of Bob:** Demonstrates how to coordinate and govern the immense speed of IBM Bob, turning a potentially chaotic automation tool into a secure, enterprise-grade environment.
-* **Real Business Viability:** It's not a technical toy; it's a functional AI Governance software product that any bank, healthcare entity, or government contractor would buy in 2026 to protect their operations.
+<div align="center">
+  <img src="docs/images/01_dashboard.png" alt="Dashboard View" width="800">
+  <br><em>Real-time statistics and enterprise dashboard</em><br><br>
+
+  <img src="docs/images/02_history.png" alt="Audit History" width="800">
+  <br><em>Comprehensive audit trail with filtering</em><br><br>
+
+  <img src="docs/images/04_audit_detail.png" alt="Audit Detail" width="800">
+  <br><em>Detailed view of high-risk code blocks</em><br><br>
+
+  <img src="docs/images/05_ai_correction.png" alt="AI Auto-Correction" width="800">
+  <br><em>AI-Driven auto-resolutions with risk improvement metrics</em><br><br>
+
+  <img src="docs/images/03_about.png" alt="About & Compliance" width="800">
+  <br><em>Compliance documentation and system overview</em>
+</div>
 
 ---
 
-## Quick Start (Technical Installation)
+## ✨ 3. Key Features
+
+### 🍏 Apple-Inspired Premium UI
+- **Glassmorphic Design:** A modern, ergonomic dark theme designed to reduce "Reviewer Fatigue."
+- **Responsive & Fluid:** Seamless experience across desktop and mobile.
+- **Enterprise Dashboard:** Real-time statistics on risk levels and audit velocity.
+
+### 🧠 AI-Powered Auto-Review
+- **Risk Analysis:** Automatic classification (Low, Medium, High) based on security, performance, and maintainability.
+- **Three-Way Solutions:** For every high-risk block, the system generates **3 AI-powered corrected versions** with a "Risk Improvement %" metric.
+- **One-Click Apply:** Directly replace risky code with a safer AI suggestion.
+
+### 📂 Governance & Export
+- **Immutable Audit Trail:** Forensic-level database tracking every approval, rejection, and comment.
+- **Professional PDF Export:** Generate formal compliance reports for auditors and regulators.
+- **Multilingual (i18n):** Instant English/Spanish switching for global teams.
+
+---
+
+## 🏗️ 4. Technical Architecture
+
+The system follows a modular, enterprise-ready pattern:
+
+- **Backend:** Python / Flask 3.0
+- **Database:** SQLite with SQLAlchemy ORM (Forensic-optimized schema)
+- **AI Integration:** OpenAI API (GPT-4) with a fallback Template Mode.
+- **Frontend:** Vanilla CSS (Custom tokens) + JavaScript (Reactive UI).
+
+### Project Structure
+```bash
+├── ai_integration/   # AI Risk Analysis & Fixer Logic
+├── database/         # SQLite storage & Migrations
+├── models/           # SQLAlchemy Data Models
+├── routes/           # Blueprint-based API & Web Routes
+├── static/           # Premium CSS & JS assets
+├── templates/        # Jinja2 HTML Templates
+├── translations.py   # Global i18n support
+└── app.py            # Main entry point
+```
+
+---
+
+## 🛠️ 5. Getting Started
 
 ### Prerequisites
-* Python 3.8 or higher
+- Python 3.9+
+- Git
 
 ### Installation
 
-1. **Clone the repository and install dependencies**
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/bob-qa-gatekeeper.git
+   cd bob-qa-gatekeeper
+   ```
+
+2. **Set up Virtual Environment:**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+   ```
+
+3. **Install Dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
-2. **Initialize the database**
+4. **Initialize Database:**
    ```bash
    python setup_db.py
    ```
-   *This will create the SQLite database and add sample records for the hackathon demonstration.*
 
-3. **Run the application**
+5. **Configure Environment (Optional):**
+   Create a `.env` file and add your key for the full AI experience:
+   ```env
+   OPENAI_API_KEY=your_key_here
+   FLASK_ENV=development
+   ```
+
+6. **Launch:**
    ```bash
    python app.py
    ```
-
-4. **Access the Panel**
-   Open your web browser and go to: `http://localhost:5000`
+   Visit: `http://localhost:5000`
 
 ---
-**Built for EU AI Act Compliance - IBM Hackathon**
+
+## 🏆 6. Why Bob-QA Gatekeeper?
+
+**Bob-QA Gatekeeper** is not just a tool; it's a **Business Strategy**. It allows enterprises to:
+- **Adopt AI Safely:** Leverage IBM Bob's speed without sacrificing security.
+- **Meet Regulations:** Full compliance with the EU AI Act out-of-the-box.
+- **Scale QA:** Empower small teams to audit massive amounts of code using AI-assisted resolution.
+
+---
+
+### 👥 Authors
+**Joshua Jacome** - *Lead Architect & Developer*
+
+Built with ❤️ for **IBM Hackathon 2026**.
